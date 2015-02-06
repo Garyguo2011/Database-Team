@@ -56,6 +56,12 @@ private[sql] class DiskPartition (
   private var writtenToDisk: Boolean = false
   private var inputClosed: Boolean = false
 
+  /******* Gary: [2015-02-05] Add instance to store blocksize **********************/
+  private var blocksize: Int = blockSize
+  // private var test_i: Int = 0
+  //********************************************************************************/
+
+
   /**
    * This method inserts a new row into this particular partition. If the size of the partition
    * exceeds the blockSize, the partition is spilled to disk.
@@ -64,6 +70,18 @@ private[sql] class DiskPartition (
    */
   def insert(row: Row) = {
     // IMPLEMENT ME
+    if (inputClosed){
+      throw new SparkException("Cannot Write after close input")
+    }
+
+    // println(test_i)
+    // test_i += 1
+    if (this.measurePartitionSize() > blockSize){
+      this.spillPartitionToDisk()
+      data.clear()
+    }
+    data.add(row)
+    writtenToDisk = false
   }
 
   /**
@@ -107,12 +125,15 @@ private[sql] class DiskPartition (
 
       override def next() = {
         // IMPLEMENT ME
-        null
+        if (currentIterator.hasNext == false && chunkSizeIterator.hasNext == true){
+          fetchNextChunk()
+        }
+        currentIterator.next()
       }
 
       override def hasNext() = {
         // IMPLEMENT ME
-        false
+        chunkSizeIterator.hasNext || currentIterator.hasNext
       }
 
       /**
@@ -123,7 +144,17 @@ private[sql] class DiskPartition (
        */
       private[this] def fetchNextChunk(): Boolean = {
         // IMPLEMENT ME
-        false
+        var nextChunkSize: Int = 0
+        if (!currentIterator.hasNext){
+          data.clear()
+          nextChunkSize = chunkSizeIterator.next()
+          byteArray = CS186Utils.getNextChunkBytes(inStream, nextChunkSize, byteArray)
+          data.addAll(CS186Utils.getListFromBytes(byteArray))
+          currentIterator = data.iterator.asScala
+          true
+        }else{
+          false
+        }
       }
     }
   }
@@ -137,6 +168,12 @@ private[sql] class DiskPartition (
    */
   def closeInput() = {
     // IMPLEMENT ME
+    // If any data has not been written to disk yet. it should be written.
+    if (!writtenToDisk){
+      this.spillPartitionToDisk()
+    }
+    // closePartition()
+    outStream.close()
     inputClosed = true
   }
 
