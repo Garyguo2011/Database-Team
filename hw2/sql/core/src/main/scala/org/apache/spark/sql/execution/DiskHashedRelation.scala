@@ -37,11 +37,14 @@ protected [sql] final class GeneralDiskHashedRelation(partitions: Array[DiskPart
 
   override def getIterator() = {
     // IMPLEMENT ME
-    null
+    partitions.iterator
   }
 
   override def closeAllPartitions() = {
     // IMPLEMENT ME
+    for( i <- 0 until partitions.size) {
+      partitions(i).closePartition()
+    }
   }
 }
 
@@ -125,15 +128,28 @@ private[sql] class DiskPartition (
 
       override def next() = {
         // IMPLEMENT ME
-        if (currentIterator.hasNext == false && chunkSizeIterator.hasNext == true){
-          fetchNextChunk()
+        // if (currentIterator.hasNext == false && chunkSizeIterator.hasNext == true){
+        //   fetchNextChunk()
+        // }
+        if (this.hasNext){
+          currentIterator.next()
+        }else{
+          null
         }
-        currentIterator.next()
+        
       }
 
       override def hasNext() = {
         // IMPLEMENT ME
-        chunkSizeIterator.hasNext || currentIterator.hasNext
+        if (currentIterator.hasNext == false && chunkSizeIterator.hasNext == true){
+          fetchNextChunk()
+        }
+
+        if (data.size == 0){
+          false
+        }else{
+          currentIterator.hasNext  
+        }
       }
 
       /**
@@ -211,6 +227,23 @@ private[sql] object DiskHashedRelation {
                 size: Int = 64,
                 blockSize: Int = 64000) = {
     // IMPLEMENT ME
-    null
+
+    var i = 0
+
+    val diskPartitions: Array[DiskPartition] = new Array[DiskPartition](size)
+    for( i <- 0 until size) {
+      diskPartitions(i) = new DiskPartition("tmp_DiskPartition_" + i, blockSize)
+    }
+
+    while (input.hasNext){
+      var current: Row = input.next()
+      diskPartitions(keyGenerator.apply(current).hashCode()%size).insert(current)
+    }
+
+    for( i <- 0 until size) {
+      diskPartitions(i).closeInput()
+    }
+
+    new GeneralDiskHashedRelation (diskPartitions)
   }
 }
