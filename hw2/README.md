@@ -1,5 +1,5 @@
 # Homework 2: UDF Caching in Spark
-  
+ 
 In this assignment you'll implement UDF (user-defined function) result caching in [Apache Spark](http://spark.apache.org), which is a framework for distributed computing in the mold of MapReduce. This project will illustrate key concepts in data rendezvous and query evaluation, and you'll get some hands-on experience modifying Spark, which is both widely used in the field, and developed right here at Berkeley. In addition, you'll get exposure to Scala, a JVM-based language that is gaining popularity for its clean functional style.
 
 This assignment is due **Thursday, February 12th at 11:59 PM** and is worth **10% of your final grade**. This project is an excellent opportunity to collaborate, and we'll require that you complete it **in pairs**. ***Please fill out [this form](http://goo.gl/forms/KYtFYc4cUG) by Monday, February 2nd at 11:59pm***.
