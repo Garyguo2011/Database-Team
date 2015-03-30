@@ -66,6 +66,11 @@ trait DNSJoin {
   def hashJoin(input: Iterator[Row]): Iterator[Row] = {
     new Iterator[Row] {
       // IMPLEMENT ME
+      val requestHT = new ConcurrentHashMap[Int, Row]()
+      val responseHT = new ConcurrentHashMap[Int, Row]()
+      var nextMatch: Queue[JoinedRow] = new Queue[JoinedRow]()
+
+
 
       /**
        * This method returns the next joined tuple.
@@ -74,6 +79,18 @@ trait DNSJoin {
        */
       override def next() = {
         // IMPLEMENT ME
+        
+        // var outerkey = rightKeyGenerator.apply(innerRow).hashCode()
+        var requestRow = input.next()
+        var requestIP = requestRow.getString(0)
+        var ipKey = leftKeyGenerator.apply(requestRow).hashCode()
+        if requestHT.contains(ipKey){
+          
+        }
+
+
+        
+        if (responseHT.contains)
       }
 
       /**
@@ -83,6 +100,7 @@ trait DNSJoin {
        */
       override def hasNext() = {
         // IMPLEMENT ME
+        input.hasNext
       }
 
 

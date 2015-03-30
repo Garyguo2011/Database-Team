@@ -67,14 +67,18 @@ trait SymmetricHashJoin {
     new Iterator[Row] {
       /* Remember that Scala does not have any constructors. Whatever code you write here serves as a constructor. */
       // IMPLEMENT ME
-      var innerIter: Iterator[Row] = leftIter
       
       var innerRelation = 0
+      // 0 represent Left
 
-
-      val leftHT = new HashMap[int, Row]()
-      val rightHT = new HashMap[int, Row]()
+      val leftHT = new HashMap[Int, JavaArrayList[Row]]()
+      val rightHT = new HashMap[Int, JavaArrayList[Row]]()
       var nextMatch: Queue[JoinedRow] = new Queue[JoinedRow]()
+
+      var innerHT = leftHT
+      var outerHT = rightHT
+      var innerIter: Iterator[Row] = leftIter
+      var outerIter: Iterator[Row] = rightIter
 
       //  leftKeyGenerator(row).hashcode() for hashtable key.
       //  rightKeyGenerator(row).hashcode() for hashtable key.
@@ -85,9 +89,11 @@ trait SymmetricHashJoin {
        */
       override def next() = {
         // IMPLEMENT ME
-        if hasNext(){
-          nextMatch.dequeue()
-        }
+        // println("dequeue...")
+        // var tmp = nextMatch.dequeue()
+        // print(tmp)
+        // tmp
+        nextMatch.dequeue()
       }
 
       /**
@@ -97,7 +103,7 @@ trait SymmetricHashJoin {
        */
       override def hasNext() = {
         // IMPLEMENT ME
-        if (!nextMatch.isEmpty()){
+        if (!nextMatch.isEmpty){
           true
         }else{
           findNextMatch()  
@@ -109,14 +115,19 @@ trait SymmetricHashJoin {
        */
       private def switchRelations() = {
         // IMPLEMENT ME
-        // if (innerIter == leftIter){
-        //   innerIter = rightIter
-        //   outerIter = leftIter
-        // }else{
-        //   innerIter = leftIter
-        //   outerIter = rightIter
-        // }
-        true
+        if (innerRelation == 0){
+          innerIter = rightIter
+          outerIter = leftIter
+          innerHT = rightHT
+          outerHT = leftHT
+          innerRelation = 1
+        }else{
+          innerIter = leftIter
+          outerIter = rightIter
+          innerHT = leftHT
+          outerHT = rightHT
+          innerRelation = 0
+        }
       }
 
       /**
@@ -126,52 +137,48 @@ trait SymmetricHashJoin {
        */
       def findNextMatch(): Boolean = {
         // IMPLEMENT ME
-        while (leftIter)
 
-        var innerRow = innerIter.next()
-        leftkey = leftKeyGenerator.apply(innerRow).hashcode()
-        rightkey = rightKeyGenerator.apply(innerRow).hashcode()
-        if (innerRelation == 0){
+        while (innerIter.hasNext || outerIter.hasNext){
+          if (innerIter.hasNext){
+            var innerRow = innerIter.next()
+            // print(innerRow)
+            var innerkey = leftKeyGenerator.apply(innerRow).hashCode()
+            var outerkey = rightKeyGenerator.apply(innerRow).hashCode()
 
-          // add to Hashtable
-          if leftHT.get(key){
-            leftHT.get(key).add(innerRow)
-          }else{
-            var rowList: JavaArrayList[Row] = new JavaArrayList[Row]()
-            rowList.add (innerRow)
-            leftHT.put(key, rowList)
-          }
-
-          // matching
-          if rightHT.get(leftKey){
-            for( i <- 0 to rowList.size() - 1){
-              nextMatch.enqueue(new JoinedRow(innerRow, rightHT.get(leftKey)[i]))
+            if (innerRelation == 0){
+              innerkey = leftKeyGenerator.apply(innerRow).hashCode()
+              outerkey = rightKeyGenerator.apply(innerRow).hashCode()  
+            }else{
+              innerkey = rightKeyGenerator.apply(innerRow).hashCode()
+              outerkey = leftKeyGenerator.apply(innerRow).hashCode()
             }
-            true
+
+            // add to hashtable
+            if (innerHT.contains(innerkey)){
+              innerHT(innerkey).add(innerRow)
+            }else{
+              var rowList: JavaArrayList[Row] = new JavaArrayList[Row]()
+              rowList.add(innerRow)
+              innerHT.put(innerkey, rowList)
+            }
+
+            // matching
+            if (outerHT.contains(outerkey)){
+              for( i <- 0 to rightHT(outerkey).size - 1){
+                nextMatch.enqueue(new JoinedRow(innerRow, rightHT(outerkey).get(i)))
+                // print("enqueue")
+                // println(nextMatch)
+              }
+              return true
+            }else{
+              switchRelations()
+            }
           }else{
-          // Should switch relations
-
-
+            switchRelations()
           }
-
-
-
-          
-        }else{
-          rightHT.put(key)
         }
-
-
-        true
-        while inner
+        false
       }
-
-      // def findNextMatch(leftIter: Iterator[Row]): Boolean = {
-      //   var innerRow = innerIter.next()
-      //   innerkey = leftKeyGenerator.apply(innerRow).hashcode()
-      //   outerkey = rightKeyGenerator.apply(innerRow).hashcode()
-
-      // }
 
     }
   }
