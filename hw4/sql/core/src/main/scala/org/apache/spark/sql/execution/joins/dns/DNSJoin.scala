@@ -73,18 +73,28 @@ trait DNSJoin {
       val requestHT = new ConcurrentHashMap[Int, Row]()
       val responseHT = new ConcurrentHashMap[Int, Row]()
       // val bufferLookup = new ConcurrentHashMap[Row, Int]()
-      val helperHT = new ConcurrentHashMap[Row, Int]()
+      val helperHT = new ConcurrentHashMap[Int, Int]()
 
       var nextMatch: Queue[JoinedRow] = new Queue[JoinedRow]()
       var requestNum = 0
 
       var curNum = 0
       var curIP: String = ""
+      var helperKey = 0
 
       while (input.hasNext && requestHT.size < requestBufferSize){
         requestHT put(requestNum, input.next())
         requestNum += 1
       }
+
+      // val test = new ConcurrentHashMap[Int, String]()
+      // test put(123, "shit")
+      // println(test.contains(123))
+      // println(test.get(123))
+      // println(test.containsKey(123))
+      // println(test(123))
+      // println(test)
+
 
       /**
        * This method returns the next joined tuple.
@@ -127,15 +137,30 @@ trait DNSJoin {
         // }
 
 
+
+
         while(nextMatch.isEmpty){
           // Respont HT
-          println(responseHT)
+          // println(requestHT)
+          // println(responseHT)
+
           for ((k, v) <- responseHT){
-            if (helperHT.contains(v) && requestHT.contains(helperHT(v))){
-              nextMatch.enqueue(new JoinedRow(v, responseHT(helperHT(v))))
+            // println("into responseHT")
+            // helperKey = leftKeyGenerator.apply(requestHT(k)).hashCode()
+            if (requestHT.containsKey(k)) {
+              nextMatch.enqueue(new JoinedRow(requestHT(k), v))
               // bufferLookup put(requestNum, requestRow)
               // Consider when add to cache
-              requestHT remove(requestNum)
+              // println(requestHT)
+              println("In responseHT")
+              println("enqueue...")
+              println(new JoinedRow(requestHT(k), v))
+              println("before delete...")
+              println(requestHT)
+              requestHT remove(k)
+              println("after delete...")
+              println(requestHT)
+              // println(requestHT)
               if (input.hasNext){
                 var fetchRequestRow = input.next()
                 requestHT put(requestNum, fetchRequestRow)
@@ -146,30 +171,43 @@ trait DNSJoin {
               
           // Request HT
           for ((qk, qv) <- requestHT){
-            if (responseHT.contains(qk)){
+            helperKey = leftKeyGenerator.apply(qv).hashCode()
+            if (helperHT.containsKey(helperKey) && responseHT.containsKey(helperHT(helperKey))) {
+              println("In responseHT")
+              println("enqueue...")
               nextMatch.enqueue(new JoinedRow(requestHT(qk), responseHT(qk)))
-              println("NOT HERE")
+              println(new JoinedRow(requestHT(qk), responseHT(qk)))
+              // println("NOT HERE")
               // delete?
+              // println(requestHT)
+              println("before delete...")
               requestHT remove(qk)
+              println("after delete...")
+              // println(requestHT)
               if (input.hasNext){
                 var fetchRequestRow = input.next()
                 requestHT put (requestNum, fetchRequestRow)
                 requestNum += 1
               }
             }else{
-             if (!helperHT.contains(qv)){
+              if (!helperHT.containsKey(helperKey)){
+                // println(helperHT.containsKey(helperKey))
+                // println(helperHT.containsKey(helperKey))
+                // println(helperKey)
                 curNum = qk
                 curIP = requestHT(qk).getString(0)
-                println("requesting... " + curNum)
+                // println("requesting... " + curNum)
                 makeRequest()
-                helperHT put(qv, curNum)
+                helperHT put(helperKey, curNum)
+
+                // println(helperHT)
               }
             }
           }
         }
 
-        println ("In NExt....")
-        println (nextMatch)
+        // println ("In NExt....")
+        // println (nextMatch)
 
         nextMatch.dequeue()
 
@@ -237,6 +275,7 @@ trait DNSJoin {
       override def hasNext() = {
         // IMPLEMENT ME
         println ("1")
+
         input.hasNext || !nextMatch.isEmpty || !requestHT.isEmpty
       }
 
