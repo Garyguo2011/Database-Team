@@ -72,29 +72,17 @@ trait DNSJoin {
       // IMPLEMENT ME
       val requestHT = new ConcurrentHashMap[Int, Row]()
       val responseHT = new ConcurrentHashMap[Int, Row]()
-      // val bufferLookup = new ConcurrentHashMap[Row, Int]()
       val helperHT = new ConcurrentHashMap[Int, Int]()
-
-      var nextMatch: Queue[JoinedRow] = new Queue[JoinedRow]()
-      var requestNum = 0
-
       var curNum = 0
       var curIP: String = ""
       var helperKey = 0
+      var requestNum = 0
+      var nextMatch: Queue[JoinedRow] = new Queue[JoinedRow]()      
 
       while (input.hasNext && requestHT.size < requestBufferSize){
         requestHT put(requestNum, input.next())
         requestNum += 1
       }
-
-      // val test = new ConcurrentHashMap[Int, String]()
-      // test put(123, "shit")
-      // println(test.contains(123))
-      // println(test.get(123))
-      // println(test.containsKey(123))
-      // println(test(123))
-      // println(test)
-
 
       /**
        * This method returns the next joined tuple.
@@ -103,55 +91,11 @@ trait DNSJoin {
        */
       override def next() = {
         // IMPLEMENT ME
-
-        // Initialize - Fill in the request buffer until the first response
-        // while (input.hasNext && requestHT.size < requestBufferSize && responseHT.isEmpty){
-          // var requestRow = input.next()
-
-        // }
-
-        // if (!nextMatch.isEmpty){
-        //   return nextMatch.dequeue()
-        // }else{
-        //   for ((k, v) <- requestHT){
-        //     if (responseHT.contains(k)){
-        //       nextMatch.enqueue(new JoinedRow(requestHT(k), responseHT(k)))
-        //       bufferLookup put(requestNum, requestRow)
-        //       requestHT remove(requestNumber)
-        //       var requestMaked = false
-        //       while (input.hasNext && requestHT.size() < requestBufferSize && !requestMaked){
-        //         var fetchRequestRow = input.next()
-        //         if bufferLookup.contains(fetchRequestRow){
-        //           nextMatch.enqueue(new JoinedRow(fetchRequestRow, responseHT(bufferLookup(fetchRequestRow))))
-        //         }else{
-        //           requestHT put(requestNum, fetchRequestRow)
-        //           requestIP = requestRow.getString(0)
-        //           makeRequest()
-        //           requestNum += 1
-        //           requestMaked = true
-        //         }
-
-        //       }
-        //     }
-        //   }
-        // }
-
-
-
-
         while(nextMatch.isEmpty){
-          // Respont HT
-          // println(requestHT)
-          // println(responseHT)
 
           for ((k, v) <- responseHT){
-            // println("into responseHT")
-            // helperKey = leftKeyGenerator.apply(requestHT(k)).hashCode()
             if (requestHT.containsKey(k)) {
               nextMatch.enqueue(new JoinedRow(requestHT(k), v))
-              // bufferLookup put(requestNum, requestRow)
-              // Consider when add to cache
-              // println(requestHT)
               println("In responseHT")
               println("enqueue...")
               println(new JoinedRow(requestHT(k), v))
@@ -160,7 +104,6 @@ trait DNSJoin {
               requestHT remove(k)
               println("after delete...")
               println(requestHT)
-              // println(requestHT)
               if (input.hasNext){
                 var fetchRequestRow = input.next()
                 requestHT put(requestNum, fetchRequestRow)
@@ -177,13 +120,9 @@ trait DNSJoin {
               println("enqueue...")
               nextMatch.enqueue(new JoinedRow(requestHT(qk), responseHT(qk)))
               println(new JoinedRow(requestHT(qk), responseHT(qk)))
-              // println("NOT HERE")
-              // delete?
-              // println(requestHT)
               println("before delete...")
               requestHT remove(qk)
               println("after delete...")
-              // println(requestHT)
               if (input.hasNext){
                 var fetchRequestRow = input.next()
                 requestHT put (requestNum, fetchRequestRow)
@@ -191,80 +130,15 @@ trait DNSJoin {
               }
             }else{
               if (!helperHT.containsKey(helperKey)){
-                // println(helperHT.containsKey(helperKey))
-                // println(helperHT.containsKey(helperKey))
-                // println(helperKey)
                 curNum = qk
                 curIP = requestHT(qk).getString(0)
-                // println("requesting... " + curNum)
                 makeRequest()
                 helperHT put(helperKey, curNum)
-
-                // println(helperHT)
               }
             }
           }
         }
-
-        // println ("In NExt....")
-        // println (nextMatch)
-
         nextMatch.dequeue()
-
-        //       var requestMaked = false
-        //       while (input.hasNext && requestHT.size() < requestBufferSize && !requestMaked){
-        //         var fetchRequestRow = input.next()
-        //         if bufferLookup.contains(fetchRequestRow){
-        //           nextMatch.enqueue(new JoinedRow(fetchRequestRow, responseHT(bufferLookup(fetchRequestRow))))
-        //         }else{
-        //           requestHT put(requestNum, fetchRequestRow)
-        //           requestIP = requestRow.getString(0)
-        //           makeRequest()
-        //           requestNum += 1
-        //           requestMaked = true
-        //         }
-
-        //       }
-        //     }
-        //   }
-        // }
-
-            
-        
-        // // var outerkey = rightKeyGenerator.apply(innerRow).hashCode()
-        // while (requestHT.isEmpty()){
-        //   var requestRow = input.next()
-        //   // requestIP = requestRow.getString(0)
-        //   // var ipKey = leftKeyGenerator.apply(requestRow).hashCode()
-        //   if bufferLookup.contains(requestRow){
-        //     nextMatch.enqueue(new JoinedRow(requestRow, responseHT(bufferLookup(requestRow))))
-        //   }else{
-            
-
-        //   if (!nextMatch.isEmpty){
-        //     return nextMatch.dequeue()
-        //   }
-
-        //     requestHT put(requestNum, requestRow)
-        //     makeRequest()
-        //     requestNum += 1
-
-        //     if
-
-        //   }
-
-        //   if (!nextMatch.isEmpty()){
-        //     return nextMatch.dequeue()
-        //   }
-
-        // }
-        // return n
-        
-
-
-        
-        // if (responseHT.contains)
-
       }
 
       /**
@@ -274,8 +148,6 @@ trait DNSJoin {
        */
       override def hasNext() = {
         // IMPLEMENT ME
-        println ("1")
-
         input.hasNext || !nextMatch.isEmpty || !requestHT.isEmpty
       }
 
