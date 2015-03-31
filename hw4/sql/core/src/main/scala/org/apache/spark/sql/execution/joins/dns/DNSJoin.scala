@@ -100,10 +100,6 @@ trait DNSJoin {
 
         // }
 
-
-
-
-
         // if (!nextMatch.isEmpty){
         //   return nextMatch.dequeue()
         // }else{
@@ -133,8 +129,8 @@ trait DNSJoin {
 
         while(nextMatch.isEmpty){
           // Respont HT
+          println(responseHT)
           for ((k, v) <- responseHT){
-            println ("3")
             if (helperHT.contains(v) && requestHT.contains(helperHT(v))){
               nextMatch.enqueue(new JoinedRow(v, responseHT(helperHT(v))))
               // bufferLookup put(requestNum, requestRow)
@@ -149,9 +145,7 @@ trait DNSJoin {
           }
               
           // Request HT
-          var i = 0
           for ((qk, qv) <- requestHT){
-            println (i)
             if (responseHT.contains(qk)){
               nextMatch.enqueue(new JoinedRow(requestHT(qk), responseHT(qk)))
               println("NOT HERE")
@@ -171,7 +165,6 @@ trait DNSJoin {
                 helperHT put(qv, curNum)
               }
             }
-            i+=1
           }
         }
 
