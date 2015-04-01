@@ -118,7 +118,7 @@ trait DNSJoin {
             if (helperHT.containsKey(helperKey) && responseHT.containsKey(helperHT(helperKey))) {
               // println("In responseHT")
               // println("enqueue...")
-              nextMatch.enqueue(new JoinedRow(requestHT(qk), responseHT(qk)))
+              nextMatch.enqueue(new JoinedRow(requestHT(qk), responseHT(helperHT(helperKey))))
               // println(new JoinedRow(requestHT(qk), responseHT(qk)))
               // println("before delete...")
               requestHT remove(qk)
