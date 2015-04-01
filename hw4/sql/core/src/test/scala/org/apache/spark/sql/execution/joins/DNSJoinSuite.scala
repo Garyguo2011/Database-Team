@@ -101,6 +101,4 @@ class DNSJoinSuite extends FunSuite {
     val result = outputRDD.collect
     assert(result.length == 0)
   }
-
-
 }

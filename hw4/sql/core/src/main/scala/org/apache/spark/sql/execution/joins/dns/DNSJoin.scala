@@ -77,7 +77,7 @@ trait DNSJoin {
       var curIP: String = ""
       var helperKey = 0
       var requestNum = 0
-      var nextMatch: Queue[JoinedRow] = new Queue[JoinedRow]()      
+      var nextMatch: Queue[JoinedRow] = new Queue[JoinedRow]()
 
       while (input.hasNext && requestHT.size < requestBufferSize){
         requestHT put(requestNum, input.next())
@@ -96,14 +96,7 @@ trait DNSJoin {
           for ((k, v) <- responseHT){
             if (requestHT.containsKey(k)) {
               nextMatch.enqueue(new JoinedRow(requestHT(k), v))
-              // println("In responseHT")
-              // println("enqueue...")
-              // println(new JoinedRow(requestHT(k), v))
-              // println("before delete...")
-              // println(requestHT)
               requestHT remove(k)
-              // println("after delete...")
-              // println(requestHT)
               if (input.hasNext){
                 var fetchRequestRow = input.next()
                 requestHT put(requestNum, fetchRequestRow)
@@ -116,13 +109,8 @@ trait DNSJoin {
           for ((qk, qv) <- requestHT){
             helperKey = leftKeyGenerator.apply(qv).hashCode()
             if (helperHT.containsKey(helperKey) && responseHT.containsKey(helperHT(helperKey))) {
-              // println("In responseHT")
-              // println("enqueue...")
               nextMatch.enqueue(new JoinedRow(requestHT(qk), responseHT(helperHT(helperKey))))
-              // println(new JoinedRow(requestHT(qk), responseHT(qk)))
-              // println("before delete...")
               requestHT remove(qk)
-              // println("after delete...")
               if (input.hasNext){
                 var fetchRequestRow = input.next()
                 requestHT put (requestNum, fetchRequestRow)
